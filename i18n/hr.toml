@@ -30,12 +30,14 @@ titleEdit = "Uredi mjerač baterije"
 
 [config.circuits]
 title = "Upravljanje opterećenjem"
+description = "Osigurava da suma svih povezanih točaka punjenja povezanih ne prelazi postavljene granice snage i jakosti struje. Krugovi mogu biti složeni hijerarhijski."
 
 [config.control]
 labelInterval = "Interval ažuriranja"
 labelMaxGridSupply = "Maksimalna opskrba mreže tijekom punjenja"
 labelResidualPower = "Preostala snaga"
 title = "Kontrolno ponašanje"
+description = "Uobičajene vrijednosti su uglavnom ispravne. Promijenite samo ako znate što radite."
 
 [config.deviceValue]
 broker = "Broker"
@@ -47,7 +49,7 @@ chargeStatusB = "povezano"
 chargeStatusC = "napajanje"
 chargeStatusE = "bez snage"
 chargeStatusF = "greška"
-chargedEnergy = "Napojeno"
+chargedEnergy = "Napunjeno"
 co2 = "Mreža CO₂"
 configured = "Konfigurirano"
 currency = "Valuta"
@@ -60,6 +62,13 @@ no = "ne"
 odometer = "Odometar"
 org = "Organizacija"
 power = "Snaga"
+phaseCurrents = "Jakost struje L1..L3"
+controllable = "Kontrolirano"
+range = "Doseg"
+phasePowers = "Snaga L1..L3"
+phaseVoltages = "Napon L1..L3"
+currentRange = "Jakost struje"
+powerRange = "Snaga"
 
 [config.form]
 example = "Primjer"
@@ -116,7 +125,7 @@ validateSave = "Verificiraj i spremi"
 
 [footer.community]
 greenEnergy = "Solarno"
-greenEnergySub1 = "napojeno s evcc-om"
+greenEnergySub1 = "napunjeno s evcc-om"
 greenEnergySub2 = "od listopada 2022."
 greenShare = "Solarni udio"
 greenShareSub1 = "snaga koju pruža"
@@ -255,7 +264,7 @@ waitForVehicle = "Spremno. Čeka se na grijač …"
 
 [main.loadpoint]
 avgPrice = "⌀ cijena"
-charged = "Napojeno"
+charged = "Napunjeno"
 co2 = "⌀ CO₂"
 duration = "Trajanje"
 fallbackName = "Mjesto napajanja"
@@ -384,6 +393,7 @@ targetChargePlanned = "Ciljano napajanje počinje u {time}."
 targetChargeWaitForVehicle = "Ciljano napajanje je spremno. Čeka se na vozilo …"
 vehicleLimitReached = "Ograničenje vozila od {soc} % dosegnuto."
 waitForVehicle = "Spremno. Čeka se na vozilo …"
+unknown = ""
 
 [notifications]
 dismissAll = "Odbaci sve"
@@ -418,7 +428,7 @@ csvMonth = "Preuzmi CSV za {month}"
 csvTotal = "Preuzmi CSV za ukupno"
 date = "Početak"
 downloadCsv = "Preuzmi kao CSV"
-energy = "Napojeno"
+energy = "Napunjeno"
 loadpoint = "Mjesto napajanja"
 noData = "U ovom mjesecu nema sesija napajanja."
 price = "Σ cijena"
