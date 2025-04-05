@@ -37,7 +37,8 @@ type Amperfied struct {
 	current             uint16
 	phases              int
 	wakeup              bool
-	durationphaseswitch uint16
+	phaseSwitchDuration time.Duration
+	phaseSwitchStart    time.Time
 }
 
 const (
@@ -55,6 +56,10 @@ const (
 	ampRegPhaseSwitchDuration = 503  // Holding
 	ampRegPhaseSwitchState    = 5001 // Input
 	ampRegRfidUID             = 2002 // Input
+)
+
+const (
+	phaseSwitchDurationDefault = 60
 )
 
 func init() {
@@ -96,9 +101,11 @@ func NewAmperfied(ctx context.Context, uri string, slaveID uint8, phases bool) (
 	conn.Logger(log.TRACE)
 
 	wb := &Amperfied{
-		log:     log,
-		conn:    conn,
-		current: 60, // assume min current
+		log:                 log,
+		conn:                conn,
+		current:             60, // assume min current
+		phaseSwitchDuration: 0,
+		phaseSwitchStart:    time.Now(),
 	}
 
 	// get failsafe timeout from charger
@@ -233,28 +240,21 @@ func (wb *Amperfied) MaxCurrentMillis(current float64) error {
 		return fmt.Errorf("invalid current %.1f", current)
 	}
 
-	// check if phase-switching is in progress
-	b, err := wb.conn.ReadInputRegisters(ampRegPhaseSwitchState, 1)
+	// If phase switch timer is running, than do not write new Amps
+	if wb.phaseSwitchStart.Add(wb.phaseSwitchDuration).After(time.Now()) {
+		return fmt.Errorf("MaxCurrent Change ignored due to phase-switch in progress for %.0f seconds", (wb.phaseSwitchStart.Add(wb.phaseSwitchDuration).Sub(time.Now())).Seconds())
+	}
+
+	cur := uint16(10 * current)
+
+	b := make([]byte, 2)
+	binary.BigEndian.PutUint16(b, cur)
+
+	_, err := wb.conn.WriteMultipleRegisters(ampRegAmpsConfig, 1, b)
 	if err != nil {
 		return err
 	}
-
-	// if phase switching is in progress, than do not write new Amps
-	phases := int(binary.BigEndian.Uint16(b))
-	if phases > 0 {
-		cur := uint16(10 * current)
-
-		b := make([]byte, 2)
-		binary.BigEndian.PutUint16(b, cur)
-
-		_, err := wb.conn.WriteMultipleRegisters(ampRegAmpsConfig, 1, b)
-		if err != nil {
-			return err
-		}
-		wb.current = cur
-	} else {
-		return fmt.Errorf("MaxCurrent Change ignored due to phase-switch in progress")
-	}
+	wb.current = cur
 
 	return nil
 }
@@ -365,29 +365,36 @@ func (wb *Amperfied) phases1p3p(phases int) error {
 	// Read current Phase Switch State
 	c, err := wb.conn.ReadInputRegisters(ampRegPhaseSwitchState, 1)
 	if err != nil {
+		wb.log.ERROR.Println("Error reading ampRegPhaseSwitchState")
 		return err
 	}
 	phases_cur := int(binary.BigEndian.Uint16(c))
 
 	if phases_cur == 0 {
-		wb.log.ERROR.Println("Ignoring phase-switch as still in progress")
-		return fmt.Errorf("phase-switch as still in progress")
+		return fmt.Errorf("phase-switch still in progress")
 	}
 	// Set new phases
 	_, err = wb.conn.WriteMultipleRegisters(ampRegPhaseSwitchControl, 1, b)
 	if err != nil {
+		wb.log.ERROR.Println("Error reading ampRegPhaseSwitchControl")
 		return err
 	}
 	wb.phases = phases
 
 	// Read Phase-Switch Duration
-	c, err = wb.conn.ReadInputRegisters(ampRegPhaseSwitchDuration, 1)
+	c, err = wb.conn.ReadHoldingRegisters(ampRegPhaseSwitchDuration, 1)
 	if err != nil {
+		wb.log.ERROR.Println("Error reading ampRegPhaseSwitchDuration")
 		return err
 	}
-	wb.durationphaseswitch = uint16((binary.BigEndian.Uint16(c)))
 
+	wb.phaseSwitchDuration = time.Duration(1+int64(binary.BigEndian.Uint16(c))) * time.Second
+	if wb.phaseSwitchDuration == 0 {
+		wb.phaseSwitchDuration = time.Duration(1+phaseSwitchDurationDefault) * time.Second
+	}
+	wb.log.DEBUG.Printf("phase-switch-duration set to %.0f seconds\n", wb.phaseSwitchDuration.Seconds())
 	// Set Timer to phase switch duration and avoid new switching or current settings during timer
+	wb.phaseSwitchStart = time.Now()
 	return nil
 }
 
@@ -395,12 +402,13 @@ func (wb *Amperfied) phases1p3p(phases int) error {
 func (wb *Amperfied) getPhases() (int, error) {
 	b, err := wb.conn.ReadInputRegisters(ampRegPhaseSwitchState, 1)
 	if err != nil {
+		wb.log.ERROR.Println("Error reading ampRegPhaseSwitchState")
 		return 0, err
 	}
 
 	phases := int(binary.BigEndian.Uint16(b))
 	if phases == 0 {
-		wb.log.DEBUG.Println("phase-switch in progress")
+		wb.log.DEBUG.Println("phase-switching in progress")
 		return wb.phases, nil
 	}
 
