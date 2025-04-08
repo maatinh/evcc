@@ -1356,7 +1356,7 @@ func (lp *Loadpoint) pvMaxCurrent(mode api.ChargeMode, sitePower, batteryBoostPo
 	effectiveCurrent := lp.effectiveCurrent()
 	if scaledTo == 3 {
 		// if we did scale, adjust the effective current to the new phase count
-		effectiveCurrent /= 3.0
+		effectiveCurrent /= float64(lp.maxActivePhases())
 	}
 	if lp.chargerHasFeature(api.IntegratedDevice) {
 		// for slow-acting heating devices, only take actually consumed power into account
@@ -1866,7 +1866,7 @@ func (lp *Loadpoint) Update(sitePower, batteryBoostPower float64, rates api.Rate
 		// cheap tariff
 		if smartCostActive {
 			rate, _ := rates.At(time.Now())
-			lp.log.DEBUG.Printf("smart cost active: %.2f", rate.Price)
+			lp.log.DEBUG.Printf("smart cost active: %.2f", rate.Value)
 			err = lp.fastCharging()
 			lp.resetPhaseTimer()
 			lp.elapsePVTimer() // let PV mode disable immediately afterwards
