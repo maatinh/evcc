@@ -53,7 +53,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:     "evcc",
 	Short:   "evcc - open source solar charging",
-	Version: server.FormattedVersion(),
+	Version: util.FormattedVersion(),
 	Run:     runRoot,
 }
 
@@ -111,7 +111,7 @@ func initConfig() {
 
 	// print version
 	util.LogLevel("info", nil)
-	log.INFO.Printf("evcc %s", server.FormattedVersion())
+	log.INFO.Printf("evcc %s", util.FormattedVersion())
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
