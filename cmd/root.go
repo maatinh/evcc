@@ -291,7 +291,7 @@ func runRoot(cmd *cobra.Command, args []string) {
 	}()
 
 	// allow web access for vehicles
-	configureAuth(conf.Network, config.Instances(config.Vehicles().Devices()), httpd.Router(), valueChan)
+	configureAuth(httpd.Router())
 
 	auth := auth.New()
 	if ok, _ := cmd.Flags().GetBool(flagDisableAuth); ok {
