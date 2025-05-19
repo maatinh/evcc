@@ -18,7 +18,6 @@ import (
 	"github.com/evcc-io/evcc/server"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/auth"
-	"github.com/evcc-io/evcc/util/config"
 	"github.com/evcc-io/evcc/util/pipe"
 	"github.com/evcc-io/evcc/util/sponsor"
 	"github.com/evcc-io/evcc/util/telemetry"
@@ -307,8 +306,8 @@ func runRoot(cmd *cobra.Command, args []string) {
 	})
 
 	// show and check version, reduce api load during development
-	if server.Version != server.DevVersion {
-		valueChan <- util.Param{Key: keys.Version, Val: server.FormattedVersion()}
+	if util.Version != util.DevVersion {
+		valueChan <- util.Param{Key: keys.Version, Val: util.FormattedVersion()}
 		//go updater.Run(log, httpd, valueChan)
 	}
 
