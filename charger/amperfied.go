@@ -395,7 +395,6 @@ func (wb *Amperfied) WakeUp() error {
 
 // phases1p3p implements the api.PhaseSwitcher interface
 func (wb *Amperfied) phases1p3p(phases int) error {
-
 	// If internal phase switching is used, only apply phases for evcc
 	if wb.internalphaseswitch {
 		wb.phases = phases
